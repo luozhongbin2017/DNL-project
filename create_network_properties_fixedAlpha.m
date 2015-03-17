@@ -11,8 +11,13 @@
 clear
 close all
 
-% open data file containing: (1) linkData, (2) [pathList], (3*) nodeCoordinates, 
-% (4*) name (of network), (5*) filename
+% open data file containing:
+% (1) linkData (mx5) [start node, end node, capacity, length, free flow time]
+% m is the link number
+% (2) [pathList]
+% (3*) nodeCoordinates 
+% (4*) name (of network)
+% (5*) filename
 uiopen([cd, '/Raw Data/*_raw.mat'])
 
 sourceEta = 0.3;   % TODO: currently this is a made up quantity
