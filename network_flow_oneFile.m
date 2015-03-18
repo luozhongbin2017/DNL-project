@@ -7,17 +7,14 @@
 % gabrielfeve@gmail.com
 % May 2014
 
-% Fixed Alpha version!!!!
-
 % ======================================================================= %
 
 % Notes and assumptions:
 % - Free flow time and equivalent for kinematic wave velocity are multiples
-% of dt (if not in data, then modified before simulating)
+% of dt (if not in input data, then uses modified data in simulation)
 % - Sources and sinks represented at OD nodes by means of virtual link
 % - Departure rates for all sources
-% - All units must be consistent, i.e. if all lengths in miles --> speed in
-% mph --> time in hours
+% - Use S.I units i.e. metres, seconds and vehicles
 
 % TODO: are all units correct? do all calculations in S.I.?
 
@@ -148,6 +145,22 @@ for tn = 1:nt  % loop over all time steps
         eta = etas{i};
         
         alpha = alphas{i};
+        gamma = cell(nLin,nLout);
+        for ik = 1:nLin
+            Lik = Lin(ik);
+            qin = Qin(Lik,1:tn);
+            tau = find(qin(Nup(Lik,1:tn) <= Ndn(Lik,tn) ), 1, 'last');  % logical indexing may be slowing calculation time since not the same size array
+            if isempty(tau)
+                tau = 1;  % set equal to 1 when there are no values of tau (i.e. before flow has reached end of link)
+            end
+            qi = Qin(Lik,tau);
+            for jk = 1:nLout
+                qijr = Qinijr(pathLinksIn{i}{ik,jk}, tau);
+                gamma{ik,jk} = max(qijr ./ qi, 0);  % this is because when qi=0 gamma should be 0/is this right? this will mean that the error will always be 'loss' of flow
+                alpha(ik,jk) = sum(gamma{ik,jk});
+            end
+        end
+
         
         Seff = min([ CC(Lin), SS(Lout,ones(nLin,1))' ./ alpha ],[], 2);
         qout = min(DD(Lin), eta .* Seff);
