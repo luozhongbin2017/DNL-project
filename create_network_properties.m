@@ -2,18 +2,21 @@
 % - Script for bundling network data into a mat-file in specified
 % format for use with the dynamic network loading (DNL) program
 
-% Fixed-alpha version!!
-
 
 %% List of inputs
 
 
 clear
-close all
 
-% open data file containing: (1) linkData, (2) [pathList], (3*) nodeCoordinates, 
-% (4*) name (of network), (5*) filename
 uiopen([cd, '/Raw Data/*_raw.mat'])
+
+% open data file containing:
+% (1) linkData
+% (2) pathList
+% (3*) nodeCoordinates, 
+% (4*) networkName
+% (5*) fileName
+
 
 sourceEta = 0.3;   % TODO: currently this is a made up quantity
 warning(['eta = ', num2str(sourceEta), ' for every source'])
@@ -52,19 +55,19 @@ end
 % create sets of ingoing and outgoing links for each node and eta values
 % based on ratio of link capacities
 
-% [~,c] = find(pathList');  % list path index for each path item
-% c_ = find([diff(c); 1]);  % find index at end of each path
-% pathLength = [c_(1); diff(c_)];  % find number of links in each path
+[~,c] = find(pathList');  % list path index for each path item % £££
+c_ = find([diff(c); 1]);  % find index at end of each path % £££
+pathLength = [c_(1); diff(c_)];  % find number of links in each path % £££
 
-% sourceNode = tailNode(pathList(:,1));
-% sinkNode = headNode(pathList(sub2ind(size(pathList),1:size(pathList,1),pathLength')));
-% sources = unique(sourceNode);
-% sinks = unique(sinkNode);
-sources = unique(tailNode);
-sinks = unique(headNode);
+sourceNode = tailNode(pathList(:,1)); % £££
+sinkNode = headNode(pathList(sub2ind(size(pathList),1:size(pathList,1),pathLength'))); % £££
+sources = unique(sourceNode); % £££
+sinks = unique(sinkNode); % £££
+% sources = unique(tailNode);  % $$$
+% sinks = unique(headNode); % $$$
 numSources = numel(sources);
 numSinks = numel(sinks);
-% numPaths = size(pathList,1);
+numPaths = size(pathList,1);
 
 
 linkIdx = 1:numLinks;
@@ -72,7 +75,7 @@ sourceIdx = numLinks + (1:numSources);
 sinkIdx = sourceIdx(end) + (1:numSinks);
 
 etas = cell(numNodes,1);
-alphas = etas;                 % pre set turning ratios
+% alphas = etas;                 % $$$ % pre set turning ratios
 linksIn = cell(numNodes,1);             % list of links into each node (including sources)
 linksOut = cell(numNodes,1);            % list of links out of each node (including sinks)
 numLinksIn = zeros(numNodes,1);         % num flows into node
@@ -97,7 +100,7 @@ for i = 1:numNodes
     linkOutIdx(Lout) = 1:nLout;
     
     % alphas
-    alphas{i} = repmat(1/nLout, nLin, nLout);  % basic alpha generator (all equal for every junction)
+%     alphas{i} = repmat(1/nLout, nLin, nLout);  % basic alpha generator (all equal for every junction) % $$$
     
     if sum(sources == i) == 1            % if node i is a source
         Cin = C(Lin(1:nLin-1));
@@ -117,10 +120,8 @@ node2sink = zeros(numNodes,1);
 node2source(sources) = 1:numSources;  % sparse?
 node2sink(sinks) = 1:numSinks;
 
-%% Paths
-
-%{
-
+%% Paths  % £££
+ 
 % create individual index for path flow on every link
 % pre-allocate
 sourcePaths = cell(numSources,1);
@@ -168,10 +169,10 @@ numTotalPathLinks = pathSinkLinkIdx(end);
 % clear temp variables
 clearvars c c_ i ipl kin kout Lin Lout path pl r 
 
-%}
+
 
 %% Save to file
 
-save([cd, '/Processed Data/', filename, '_FA_pp.mat'])
+save([cd, '/Processed Data/', fileName, '_pp.mat'])
 
-fprintf(['Variables saved to .../Processed Data/', filename, '_FA_pp.mat', '\n'])
+fprintf(['Variables saved to .../Processed Data/', fileName, '_pp.mat', '\n'])

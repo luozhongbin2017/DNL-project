@@ -7,17 +7,13 @@
 % gabrielfeve@gmail.com
 % May 2014
 
-% Fixed Alpha version!!!!
-
 % ======================================================================= %
 
 % Notes and assumptions:
 % - Free flow time and equivalent for kinematic wave velocity are multiples
 % of dt (if not in data, then modified before simulating)
 % - Sources and sinks represented at OD nodes by means of virtual link
-% - Departure rates for all sources
-% - All units must be consistent, i.e. if all lengths in miles --> speed in
-% mph --> time in hours
+% - All units in SI i.e. metres, seconds and vehicles
 
 % TODO: are all units correct? do all calculations in S.I.?
 
@@ -27,14 +23,14 @@ clear
 %% DATA INPUT
 
 % load network data
-uiopen([cd, '/Processed Data/*_FA_pp.mat'])
-fprintf(['[1] Loading network data from ', filename, '_FA_pp.mat \n'])
+uiopen([cd, '/Processed Data/*_pp.mat'])
+fprintf(['[1] Loading network data from ', fileName, '_pp.mat \n'])
 
 %% Inputs (user changeable)
 % TODO: consistency with units
 
 dt = min(Tff);                                % [s] set the time-step
-nt = input('Number of time steps: ');          % num of time steps
+nt = 200; % input('Number of time steps: ');          % num of time steps
 typDepartureRate = 80;           % [veh/s] source departure rate
 typDepartureDur = 30;           % typical number of time steps of departure flow
 
@@ -44,7 +40,7 @@ fprintf('[2] Initialising variables \n')
 if sum(Tff < dt) > 0
     warning('dt > the minimum link free-flow time\ndt = %1.5f, fft_min = %1.5f', dt, min(Tff))
 end
-% round free flow times to multiples of dt and update L accordingly
+% round free flow times (Tff) to multiples of dt and update lengths (L) accordingly
 Tff_ = round(Tff / dt) * dt;            % [s] modified free flow time
 Tff_(Tff_==0) = dt;
 L_ = Tff_ .* L ./ Tff;                  % [m] modified length of link
@@ -59,27 +55,35 @@ Nup = zeros(sinkIdx(end), nt);          % [veh] cumulative sum of upstream vehic
 Ndn = zeros(sourceIdx(end), nt);        % [veh] cumulative sum of downstream vehicles
 Qin = zeros(sinkIdx(end), nt);          % [veh/s] upstream flow
 Qout = zeros(sourceIdx(end), nt);       % [veh/s] downstream flow
-% Qinijr = zeros(numTotalPathLinks, nt);  % [veh/s] upstream flow of paths
+Qinijr = zeros(numTotalPathLinks, nt);  % [veh/s] upstream flow of paths % £££
 Nsource = zeros(numSources,1);          % [veh] number of veh queueing at source
 
 
 %% Departure Rates
 fprintf('[3] Setting departure rates \n')
 
-sourceDepartures = zeros(numSources,nt);
-startTimes = randi(typDepartureDur,numSources,1);
-endTimes = typDepartureDur + randi(typDepartureDur,numSources,1);
-depRate = typDepartureRate + (rand(numSources,1)-0.5) .* (typDepartureRate .* 0.25);
+% random set of departure rates for each path
+pathDepartures = zeros(numPaths,nt);
+startTimes = randi(typDepartureDur,numPaths,1);
+endTimes = typDepartureDur + randi(typDepartureDur,numPaths,1);
+depRate = typDepartureRate + (rand(numPaths,1)-0.5) .* (typDepartureRate .* 0.25);
 
+for r = 1:5:numPaths
+    st = startTimes(r);
+    et = endTimes(r);
+    pathDepartures(r,st:et) = depRate(r);
+end
+
+sourceDepartures = zeros(numSources,nt);
 for n = 1:numSources
-    st = startTimes(n);
-    et = endTimes(n);
-    sourceDepartures(n,st:et) = depRate(n);
-    %     i = sources(n);
-    %     sourceDepartures(n,:) = sum(pathDepartures(sourceNode == i,:), 1);  % sum path departure rates for each source
+    i = sources(n);
+    % sum path departure rates for each source
+    sourceDepartures(n,:) = sum(pathDepartures(sourceNode == i,:), 1);
 end
 
 Qin(sourceIdx,:) = sourceDepartures;  % set total departure rate from each source
+r_ = pathSourceLinkIdx';
+Qinijr(pathSourceLinkIdx,:) = pathDepartures;
 
 clearvars st et
 
@@ -97,7 +101,6 @@ Dsource = zeros(numSources,1);
 DD = [D; Dsource];
 
 eps = 1e-9;                         % machine precision tolerance
-
 
 tic
 for tn = 1:nt  % loop over all time steps
@@ -143,16 +146,44 @@ for tn = 1:nt  % loop over all time steps
     
     for i = 1:numNodes
         nLin = numLinksIn(i);
+        nLout = numLinksOut(i); % £££
         Lin = linksIn{i};
         Lout = linksOut{i};
         eta = etas{i};
         
-        alpha = alphas{i};
+        gamma = cell(nLin,nLout);
+        alpha = zeros(nLin,nLout);
+        for ik = 1:nLin
+            Lik = Lin(ik);
+            qin = Qin(Lik,1:tn);
+            % logical indexing may be slowing calculation time since not the same size array
+            tau = find(qin(Nup(Lik,1:tn) <= Ndn(Lik,tn) ), 1, 'last');
+            if isempty(tau)
+            % set equal to 1 when there are no values of tau (i.e. before flow has reached end of link)
+                tau = 1;
+            end
+            qi = Qin(Lik,tau);
+            for jk = 1:nLout
+                qijr = Qinijr(pathLinksIn{i}{ik,jk}, tau);
+                % this is because when qi=0 gamma should be 0/is this right?
+                % this will mean that the error will always be 'loss' of flow
+                gamma{ik,jk} = max(qijr ./ qi, 0);
+                alpha(ik,jk) = sum(gamma{ik,jk});
+            end
+        end
         
         Seff = min([ CC(Lin), SS(Lout,ones(nLin,1))' ./ alpha ],[], 2);
         qout = min(DD(Lin), eta .* Seff);
-        Qin(Lout,tn) = alpha' * qout;           % matrix multiplication
+        Qin(Lout,tn) = alpha' * qout;           % 	 multiplication
         Qout(Lin,tn) = qout;
+        
+        % split flow back into individual paths
+        for ik = 1:nLin
+            for jk = 1:nLout
+                Qinijr(pathLinksOut{i}{ik,jk},tn) = gamma{ik,jk} * qout(ik);
+            end
+        end
+        
     end
     
     
@@ -167,8 +198,8 @@ for tn = 1:nt  % loop over all time steps
     %     waitbar(tn/nt, h)
     dispstat(sprintf('\t%6.0f%% Complete', tn/nt*100))
     
-    
 end
+
 timeElapsed = toc;
 fprintf('\b\tTime elapsed: %6.2fs\n', timeElapsed)
 

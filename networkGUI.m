@@ -1,4 +1,4 @@
- function out = networkGUI(name,filename,X,Y,headNode,tailNode,adjacencyList,rho,rho_j,nt,Nup,Ndn,Qin,Qout,C,numLinks,numNodes,sources,sinks,sourceIdx,sinkIdx,node2source,node2sink,t)
+ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyList,rho,rho_j,nt,Nup,Ndn,Qin,Qout,C,numLinks,numNodes,sources,sinks,sourceIdx,sinkIdx,node2source,node2sink,t)
 
 
 %% Callback definitions
@@ -130,9 +130,9 @@
 %                 im = frame2im(frame);
 %                 [A,map] = rgb2ind(im,256);
 %                 if tn == 1;
-%                     imwrite(A,map,[filename, '.gif'],'gif','LoopCount',Inf,'DelayTime',0.2);
+%                     imwrite(A,map,[fileName, '.gif'],'gif','LoopCount',Inf,'DelayTime',0.2);
 %                 else
-%                     imwrite(A,map,[filename, '.gif'],'gif','WriteMode','append','DelayTime',0.2);
+%                     imwrite(A,map,[fileName, '.gif'],'gif','WriteMode','append','DelayTime',0.2);
 %                 end
 %                 %%% end save to GIF %%%
                 pause(0.1)
@@ -183,7 +183,7 @@ hfig = figure('Name', 'Network Simulation', ...
 hpanelmain = uipanel(hfig, 'Position', [0.15 0 0.85 1], 'Background', 'w');
 hpanelside = uipanel(hfig, 'Position', [0 0 0.15 1]);
 ax = axes('Parent', hpanelmain, 'Position', [0.05 0.05 0.9 0.9]);
-title([name, ' Network'], 'FontSize', 22)
+title([networkName, ' Network'], 'FontSize', 22)
 hold on
 
 % create virtual nodal coordinates for 2-way flow (left hand drive - for
