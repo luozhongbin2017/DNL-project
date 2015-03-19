@@ -2,10 +2,10 @@
 *algorithm by Ke Han | implementation by Gabriel Eve*
 
 ## Contents
-- [Introduction](#Introduction)
-- Pre-processor
-- Main program
-- GUI
+- [Introduction](#introduction)
+- [Pre-processor](#pre-processor)
+- [Main program](#main-program)
+- [GUI](#graphical-display)
 
 
 ## Introduction
