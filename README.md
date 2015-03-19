@@ -1,7 +1,7 @@
 # Dynamic network loading package for MATLAB
 *algorithm by Ke Han | implementation by Gabriel Eve*
 
-## Contents
+### Table of contents
 - [Introduction](#introduction)
 - [Pre-processor](#pre-processor)
 - [Main program](#main-program)
@@ -10,6 +10,8 @@
 
 ## Introduction
 An implementation of a dynamic network loading model using the algorithm set out in (missing paper reference) (Han et al., 2012)
+
+[[back](#table-of-contents "Go to table of contents")]
 
 ## Pre-processor
 The `create_network_properties.m` script loads a MAT file containing arrays `linkData` and `pathList` , and optional variables: `nodeCoordinates`, `networkName` and `fileName`. The required format of these inputs is described in each section below.
@@ -52,11 +54,17 @@ Array of dimension [*p* x *k*_max] where *p* is the number of paths and *k* is t
 
 `fileName`: name to use for file outputs (must meet MATLAB's naming requirements)
 
+[[back](#table-of-contents "Go to table of contents")]
+
 ## Main program
 
+[[back](#table-of-contents "Go to table of contents")]
 
 ## Graphical display
 
+[[back](#table-of-contents "Go to table of contents")]
+
 ## Versions
 
+[[back](#table-of-contents "Go to table of contents")]
 
