@@ -29,10 +29,10 @@ fprintf(['[1] Loading network data from ', fileName, '_pp.mat \n'])
 %% Inputs (user changeable)
 % TODO: consistency with units
 
-dt = min(Tff);                                % [s] set the time-step
+dt = min(Tff)/4;                      % [s] set the time-step
 nt = 200; % input('Number of time steps: ');          % num of time steps
-typDepartureRate = 80;           % [veh/s] source departure rate
-typDepartureDur = 30;           % typical number of time steps of departure flow
+typDepartureRate = 1;              % [veh/s] source departure rate
+typDepartureDur = 30;               % typical number of time steps of departure flow
 
 
 %% INITIALIZING VARIABLES
@@ -42,7 +42,7 @@ if sum(Tff < dt) > 0
 end
 % round free flow times (Tff) to multiples of dt and update lengths (L) accordingly
 Tff_ = round(Tff / dt) * dt;            % [s] modified free flow time
-Tff_(Tff_==0) = dt;
+Tff_(Tff_==0) = dt;                     % if free flow time rounded to 0, impose minimum of dt
 L_ = Tff_ .* L ./ Tff;                  % [m] modified length of link
 Tkw = 3 * Tff_;                         % [s] (link length) / (kinematic wave velocity)
 rho_jL = 4 * C .* Tff_;
@@ -63,6 +63,7 @@ Nsource = zeros(numSources,1);          % [veh] number of veh queueing at source
 fprintf('[3] Setting departure rates \n')
 
 % random set of departure rates for each path
+%==========================================================================
 pathDepartures = zeros(numPaths,nt);
 startTimes = randi(typDepartureDur,numPaths,1);
 endTimes = typDepartureDur + randi(typDepartureDur,numPaths,1);
@@ -73,6 +74,7 @@ for r = 1:5:numPaths
     et = endTimes(r);
     pathDepartures(r,st:et) = depRate(r);
 end
+%==========================================================================
 
 sourceDepartures = zeros(numSources,nt);
 for n = 1:numSources
@@ -93,17 +95,19 @@ clearvars st et
 fprintf('[4] Simulating traffic flows')
 dispstat('', 'init')
 dispstat(sprintf('\t0%% Complete'))
-CC = [C; inf(numSources,1)];             % flow capacity
-SS = [C; inf(numSources+numSinks,1)];    % supply (how much can enter)
-S = C;
-D = zeros(numLinks,1);
-Dsource = zeros(numSources,1);
-DD = [D; Dsource];
+CC = [C; inf(numSources,1)];             % flow capacity (including virtual links)
+S = C;                                  % supply = capacity in empty network (initial condition)
+SS = [S; inf(numSources+numSinks,1)];    % supply: how much can enter (including virtual links)
+D = zeros(numLinks,1);                  % demand = 0 in empty network (initial condition)
+Dsource = zeros(numSources,1);          % demand at source (initial)
+DD = [D; Dsource];                      % demand (including virtual links)
 
 eps = 1e-9;                         % machine precision tolerance
 
 tic
 for tn = 1:nt  % loop over all time steps
+    
+    %% Link model
     
     tkappa = tn - tnk;                  % t-L/k index
     tomega = tn - tnw;                  % t-L/w index
@@ -143,6 +147,8 @@ for tn = 1:nt  % loop over all time steps
     
     % flow in and out of junction
     SS(linkIdx) = S;                         % supply (how much can enter)
+    
+    %% Junction model
     
     for i = 1:numNodes
         nLin = numLinksIn(i);
@@ -187,7 +193,7 @@ for tn = 1:nt  % loop over all time steps
     end
     
     
-    % update number of veh have passed entrance and exit of each link
+    % update number of veh that have entered and exited of each link
     Nup(:,tn+1) = Nup(:,tn) + Qin(:,tn) * dt;
     Ndn(:,tn+1) = Ndn(:,tn) + Qout(:,tn) * dt;
     
