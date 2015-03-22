@@ -30,9 +30,11 @@ fprintf(['[1] Loading network data from ', fileName, '_pp.mat \n'])
 % TODO: consistency with units
 
 dt = min(Tff)/4;                      % [s] set the time-step
-nt = 200; % input('Number of time steps: ');          % num of time steps
-typDepartureRate = 1;              % [veh/s] source departure rate
+nt = 200;                           % input('Number of time steps: ');          % num of time steps
+typDepartureRate = 1;              % [veh/s] typical source departure rate
 typDepartureDur = 30;               % typical number of time steps of departure flow
+% initial departure rates
+pathDepartureRates = typDepartureRate + (rand(numPaths,1)-0.5) .* (typDepartureRate .* 0.25);
 
 
 %% INITIALIZING VARIABLES
@@ -62,32 +64,15 @@ Nsource = zeros(numSources,1);          % [veh] number of veh queueing at source
 %% Departure Rates
 fprintf('[3] Setting departure rates \n')
 
-% random set of departure rates for each path
+% random initial departure rate for each path
 %==========================================================================
-pathDepartures = zeros(numPaths,nt);
-startTimes = randi(typDepartureDur,numPaths,1);
-endTimes = typDepartureDur + randi(typDepartureDur,numPaths,1);
-depRate = typDepartureRate + (rand(numPaths,1)-0.5) .* (typDepartureRate .* 0.25);
-
-for r = 1:5:numPaths
-    st = startTimes(r);
-    et = endTimes(r);
-    pathDepartures(r,st:et) = depRate(r);
-end
+% moved to user inputs
 %==========================================================================
 
-sourceDepartures = zeros(numSources,nt);
-for n = 1:numSources
-    i = sources(n);
-    % sum path departure rates for each source
-    sourceDepartures(n,:) = sum(pathDepartures(sourceNode == i,:), 1);
-end
+% initialise source departures
+sourceDepartures = zeros(numSources,1);
 
-Qin(sourceIdx,:) = sourceDepartures;  % set total departure rate from each source
-r_ = pathSourceLinkIdx';
-Qinijr(pathSourceLinkIdx,:) = pathDepartures;
 
-clearvars st et
 
 %% COMPUTATION
 % show calculation progress
@@ -106,6 +91,19 @@ eps = 1e-9;                         % machine precision tolerance
 
 tic
 for tn = 1:nt  % loop over all time steps
+    
+    
+    %% Update departure rates
+    
+    for n = 1:numSources
+        i = sources(n);
+        % sum path departure rates at each source
+        sourceDepartures(n) = sum(pathDepartureRates(sourceNode == i));
+    end
+    
+    Qin(sourceIdx,tn) = sourceDepartures;  % set total departure rate from each source
+    Qinijr(pathSourceLinkIdx,tn) = pathDepartureRates;
+    
     
     %% Link model
     
@@ -146,7 +144,7 @@ for tn = 1:nt  % loop over all time steps
     DD(sourceIdx) = Dsource;
     
     % flow in and out of junction
-    SS(linkIdx) = S;                         % supply (how much can enter)
+    SS(linkIdx) = S;                         % update supply (how much can enter)
     
     %% Junction model
     
@@ -199,6 +197,13 @@ for tn = 1:nt  % loop over all time steps
     
     % update length of queue at source
     Nsource = max(0, Nsource + dt*(Qin(sourceIdx,tn) - Qout(sourceIdx,tn)));
+    
+    
+    %% determine next departure rates from number of veh on each link (N)
+    N = Nup(linkIdx,tn+1) - Ndn(linkIdx,tn+1);    % number of veh on each link
+    
+    pathDepartureRates = updateDepartureRates(N, pathDepartureRates);
+    
     
     % update loop progress
     %     waitbar(tn/nt, h)
