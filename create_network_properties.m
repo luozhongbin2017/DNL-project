@@ -8,7 +8,8 @@
 
 clear
 
-uiopen([cd, '/Raw Data/*_raw.mat'])
+% uiopen([cd, '/Raw Data/*_raw.mat'])
+load('Sioux_Falls_raw.mat')
 
 % open data file containing:
 % (1) linkData
@@ -173,6 +174,6 @@ clearvars c c_ i ipl kin kout Lin Lout path pl r
 
 %% Save to file
 
-save([cd, '/Processed Data/', fileName, '_pp.mat'])
+save([cd, '/', fileName, '_pp.mat'])
 
-fprintf(['Variables saved to .../Processed Data/', fileName, '_pp.mat', '\n'])
+fprintf(['Variables saved to ...', fileName, '_pp.mat', '\n'])

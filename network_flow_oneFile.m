@@ -23,7 +23,8 @@ clear
 %% DATA INPUT
 
 % load network data
-uiopen([cd, '/Processed Data/*_pp.mat'])
+% uiopen([cd, '/Processed Data/*_pp.mat'])
+load('Sioux_Falls_pp.mat')
 fprintf(['[1] Loading network data from ', fileName, '_pp.mat \n'])
 
 %% Inputs (user changeable)
