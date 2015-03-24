@@ -2,14 +2,15 @@
 *algorithm by Ke Han | implementation by Gabriel Eve*
 
 ### Table of contents
-- [Introduction](#introduction)
-- [Pre-processor](#pre-processor)
-- [Main program](#main-program)
-- [GUI](#graphical-display)
+* [Introduction](#introduction)
+* [Pre-processor](#pre-processor)
+* [Main program](#main-program)
+* [GUI](#graphical-display)
+* [References](#references)
 
 
 ## Introduction
-An implementation of a dynamic network loading model using the algorithm set out in (missing paper reference) (Han et al., 2012)
+The package is an implementation of the dynamic network loading (DNL) model formulated as a system of differential algebraic equations proposed by (Han et al., 2014a). This model employs the classical LWR (Lighthill-Whitham-Richards) link dynamics and captures vehicle spillback.
 
 [[back](#table-of-contents "Go to table of contents")]
 
@@ -40,6 +41,10 @@ Array of dimension [*p* x *k*_max] where *p* is the number of paths and *k* is t
 
 
 ### Optional inputs
+`networkName`: name of the network
+
+`fileName`: name to use for file outputs (must meet MATLAB's naming requirements)
+
 `nodeCoordinates`:
 
 |          | X | Y |
@@ -50,9 +55,7 @@ Array of dimension [*p* x *k*_max] where *p* is the number of paths and *k* is t
 |          |   |   |
 | node *n* |   |   |
 
-`networkName`: name of the network, useful for graphic display of results
 
-`fileName`: name to use for file outputs (must meet MATLAB's naming requirements)
 
 [[back](#table-of-contents "Go to table of contents")]
 
@@ -68,3 +71,6 @@ Array of dimension [*p* x *k*_max] where *p* is the number of paths and *k* is t
 
 [[back](#table-of-contents "Go to table of contents")]
 
+## References
+
+Han, K., Friesz, T.L., Yao, T., 2014a. Vehicle spillback on dynamic traffic networks and what it means for dynamic traffic assignment models. 5th International Symposium on Dynamic Traffic Assignment. Salerno, Italy, 17-19 June 2014.
