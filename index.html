@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DNL project : Dynamic network loading model for MATLAB">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>DNL project</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/gabrieleve/DNL-project">View on GitHub</a>
+
+          <h1 id="project_title">DNL project</h1>
+          <h2 id="project_tagline">Dynamic network loading model for MATLAB</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/gabrieleve/DNL-project/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/gabrieleve/DNL-project/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="dynamic-network-loading-package-for-matlab" class="anchor" href="#dynamic-network-loading-package-for-matlab" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dynamic network loading package for MATLAB</h1>
+
+<p><em>algorithm by Ke Han | implementation by Gabriel Eve</em></p>
+
+<h3>
+<a id="table-of-contents" class="anchor" href="#table-of-contents" aria-hidden="true"><span class="octicon octicon-link"></span></a>Table of contents</h3>
+
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#pre-processor">Pre-processor</a></li>
+<li><a href="#main-program">Main program</a></li>
+<li><a href="#graphical-display">GUI</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+
+<h2>
+<a id="introduction" class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction</h2>
+
+<p>The package is an implementation of the dynamic network loading (DNL) model formulated as a system of differential algebraic equations proposed by (Han et al., 2014a). This model employs the classical LWR (Lighthill-Whitham-Richards) link dynamics and captures vehicle spillback.</p>
+
+<p>[<a href="#table-of-contents" title="Go to table of contents">back</a>]</p>
+
+<h2>
+<a id="pre-processor" class="anchor" href="#pre-processor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Pre-processor</h2>
+
+<p>The <code>create_network_properties.m</code> script loads a MAT file containing arrays <code>linkData</code> and <code>pathList</code> , and optional variables: <code>nodeCoordinates</code>, <code>networkName</code> and <code>fileName</code>. The required format of these inputs is described in each section below.</p>
+
+<h3>
+<a id="linkdata" class="anchor" href="#linkdata" aria-hidden="true"><span class="octicon octicon-link"></span></a><code>linkData</code>
+</h3>
+
+<p>Array of dimension [<em>m</em> x 5], where <em>m</em> is number of links in network. Contains information about each link (in rows).</p>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Tail node</th>
+<th>Head node</th>
+<th>Capacity [veh/s]</th>
+<th>Length [m]</th>
+<th>Free flow time [s]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>link 1</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>link 2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>link 3</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>link <em>m</em>
+</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+<h3>
+<a id="pathlist" class="anchor" href="#pathlist" aria-hidden="true"><span class="octicon octicon-link"></span></a><code>pathList</code>
+</h3>
+
+<p>Array of dimension [<em>p</em> x <em>k</em>_max] where <em>p</em> is the number of paths and <em>k</em> is the number of links in each path. <em>k</em>_max is the number of links in the longest path, and all paths with <em>k</em> &lt; <em>k</em>_max must have trailing zeros. Examples shown below (path 1 has 2 links, path 2 has 3 links, and path 3 has <em>k</em>_max links):</p>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th align="center">1st link</th>
+<th align="center">2nd link</th>
+<th align="center">3rd link</th>
+<th align="center">4th link</th>
+<th align="center"></th>
+<th align="center"></th>
+<th align="center">
+<em>k</em>_max link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path 1</td>
+<td align="center">4</td>
+<td align="center">3</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td>path 2</td>
+<td align="center">1</td>
+<td align="center">2</td>
+<td align="center">8</td>
+<td align="center">0</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td>path 3</td>
+<td align="center">8</td>
+<td align="center">5</td>
+<td align="center">4</td>
+<td align="center">7</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">2</td>
+</tr>
+<tr>
+<td></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr>
+<td>path <em>p</em>
+</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">0</td>
+</tr>
+</tbody>
+</table>
+
+<h3>
+<a id="optional-inputs" class="anchor" href="#optional-inputs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Optional inputs</h3>
+
+<p><code>networkName</code>: name of the network</p>
+
+<p><code>fileName</code>: name to use for file outputs (must meet MATLAB's naming requirements)</p>
+
+<p><code>nodeCoordinates</code>:</p>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>X</th>
+<th>Y</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>node 1</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>node 2</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>node 3</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>node <em>n</em>
+</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+<p>[<a href="#table-of-contents" title="Go to table of contents">back</a>]</p>
+
+<h2>
+<a id="main-program" class="anchor" href="#main-program" aria-hidden="true"><span class="octicon octicon-link"></span></a>Main program</h2>
+
+<p>[<a href="#table-of-contents" title="Go to table of contents">back</a>]</p>
+
+<h2>
+<a id="graphical-display" class="anchor" href="#graphical-display" aria-hidden="true"><span class="octicon octicon-link"></span></a>Graphical display</h2>
+
+<p>[<a href="#table-of-contents" title="Go to table of contents">back</a>]</p>
+
+<h2>
+<a id="versions" class="anchor" href="#versions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Versions</h2>
+
+<p>[<a href="#table-of-contents" title="Go to table of contents">back</a>]</p>
+
+<h2>
+<a id="references" class="anchor" href="#references" aria-hidden="true"><span class="octicon octicon-link"></span></a>References</h2>
+
+<p>Han, K., Friesz, T.L., Yao, T., 2014a. Vehicle spillback on dynamic traffic networks and what it means for dynamic traffic assignment models. 5th International Symposium on Dynamic Traffic Assignment. Salerno, Italy, 17-19 June 2014.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">DNL project maintained by <a href="https://github.com/gabrieleve">gabrieleve</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-59528370-2");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+
+  </body>
+</html>
