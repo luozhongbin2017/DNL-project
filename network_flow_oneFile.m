@@ -69,7 +69,7 @@ startTimes = randi(typDepartureDur,numPaths,1);
 endTimes = typDepartureDur + randi(typDepartureDur,numPaths,1);
 depRate = typDepartureRate + (rand(numPaths,1)-0.5) .* (typDepartureRate .* 0.25);
 
-for r = 1:5:numPaths
+for r = 1:numPaths
     st = startTimes(r);
     et = endTimes(r);
     pathDepartures(r,st:et) = depRate(r);
@@ -95,9 +95,9 @@ clearvars st et
 fprintf('[4] Simulating traffic flows')
 dispstat('', 'init')
 dispstat(sprintf('\t0%% Complete'))
-CC = [C; inf(numSources,1)];             % flow capacity (including virtual links)
+CC = [C; inf(numSources,1)];            % flow capacity (including virtual links)
 S = C;                                  % supply = capacity in empty network (initial condition)
-SS = [S; inf(numSources+numSinks,1)];    % supply: how much can enter (including virtual links)
+SS = [S; inf(numSources+numSinks,1)];   % supply: how much can enter (including virtual links)
 D = zeros(numLinks,1);                  % demand = 0 in empty network (initial condition)
 Dsource = zeros(numSources,1);          % demand at source (initial)
 DD = [D; Dsource];                      % demand (including virtual links)

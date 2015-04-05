@@ -1,9 +1,10 @@
- function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyList,rho,rho_j,nt,Nup,Ndn,Qin,Qout,C,numLinks,numNodes,sources,sinks,sourceIdx,sinkIdx,node2source,node2sink,t)
+function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyList,rho,rho_j,nt,Nup,Ndn,Qin,Qout,C,numLinks,numNodes,sources,sinks,sourceIdx,sinkIdx,node2source,node2sink,t)
 
+% fileName is used when saving a GIF of animation
 
 %% Callback definitions
 
-    function linkSelection_callback(h,~)
+    function linkSelectionCallback(h,~)
         activeLink = find(hlinks == h);
         
         figure('Numbertitle', 'off', ...
@@ -25,8 +26,7 @@
         legend('Q_{in}', 'Q_{out}', 'location', 'best')
         
     end
-
-    function nodeSelection_callback(h,~)
+    function nodeSelectionCallback(h,~)
         
         activeNode = find(hnodes == h);
         
@@ -67,36 +67,21 @@
         end
         
     end
-
-    function nodes_callback(h,~)
-        
-        if strcmp(get(h, 'String'), 'Hide Nodes')
-            set(hnodes, 'Visible', 'off')
-            set(h, 'String', 'Show Nodes')
-        else
-            set(hnodes, 'Visible', 'on')
-            set(h, 'String', 'Hide Nodes')
-        end
-        
-    end
-
-    function slider_callback(h,~)
+    function sliderCallback(h,~)
         
         set(hplay, 'String', 'Start')
         tval = round(get(h, 'Value'));
-        update_ui(tval)
+        updateUi(tval)
         
     end
-
-    function rewind_callback(~,~)
+    function rewindCallback(~,~)
         
         set(hplay, 'String', 'Start')
         tval = 1;
-        update_ui(tval)
+        updateUi(tval)
         
     end
-
-    function popup_callback(h,~)
+    function popupCallback(h,~)
         
         ind = get(h, 'Value');
         cmaplabel = popupInfo{2,ind};
@@ -107,12 +92,38 @@
         hcol = colorbar;
         ylabel(hcol, cmaplabel)
         if strcmp(get(hplay, 'String'), 'Start')
-            update_ui(tval)
+            updateUi(tval)
         end
         
     end
-
-    function play_callback(h,~)  % *** + GIF generator ***
+    function displayNodesCallback(h,~)
+        
+        if get(h, 'Value') == 0
+            set(hnodes, 'Visible', 'off')
+        else
+            set(hnodes, 'Visible', 'on')
+        end
+        
+    end
+    function nodeNumbersCallback(h,~)
+        
+        if get(h, 'Value') == 1
+            set(hNodeNumbers, 'Visible', 'on')
+        else
+            set(hNodeNumbers, 'Visible', 'off')
+        end
+        
+    end
+    function linkNumbersCallback(h,~)
+        
+        if get(h, 'Value') == 1
+            set(hLinkNumbers, 'Visible', 'on')
+        else
+            set(hLinkNumbers, 'Visible', 'off')
+        end
+        
+    end
+    function playCallback(h,~)  % *** + GIF generator ***
         
         if strcmp(get(h, 'String'), 'Start')
             set(h, 'String', 'Stop')
@@ -123,18 +134,18 @@
                 if strcmp(get(h, 'String'), 'Start')
                     return
                 end
-                update_ui(tn)
-%                 %%% start save to GIF %%%
-%                 drawnow
-%                 frame = getframe(hfig);
-%                 im = frame2im(frame);
-%                 [A,map] = rgb2ind(im,256);
-%                 if tn == 1;
-%                     imwrite(A,map,[fileName, '.gif'],'gif','LoopCount',Inf,'DelayTime',0.2);
-%                 else
-%                     imwrite(A,map,[fileName, '.gif'],'gif','WriteMode','append','DelayTime',0.2);
-%                 end
-%                 %%% end save to GIF %%%
+                updateUi(tn)
+                %                 %%% start save to GIF %%%
+                %                 drawnow
+                %                 frame = getframe(hfig);
+                %                 im = frame2im(frame);
+                %                 [A,map] = rgb2ind(im,256);
+                %                 if tn == 1;
+                %                     imwrite(A,map,[fileName, '.gif'],'gif','LoopCount',Inf,'DelayTime',0.2);
+                %                 else
+                %                     imwrite(A,map,[fileName, '.gif'],'gif','WriteMode','append','DelayTime',0.2);
+                %                 end
+                %                 %%% end save to GIF %%%
                 pause(0.1)
             end
             set(h, 'String', 'Start')
@@ -144,29 +155,29 @@
         end
         
     end
-
-    function update_ui(tn)
+    function updateUi(tn)
         
         set(hslider, 'Value', tn)
         set(hlinks, {'Color'}, num2cell(cmap(cind(:,tn),:), 2))
         set(hnodes, {'MarkerFaceColor'}, num2cell(cmapN(cindN(:,tn),:), 2))
-%         sel = sel1(:,tn)|sel2(:,tn);
+        %         sel = sel1(:,tn)|sel2(:,tn);
         %         set(hnodes(sel), 'MarkerEdge', 'none')
         %         set(hnodes(~sel), 'MarkerEdge', 'k', 'MarkerFace', 'none')
-%         set(hnodes(~sel), 'MarkerFace', 'none')
+        %         set(hnodes(~sel), 'MarkerFace', 'none')
         textsliderstr = sprintf('t = %0.2f h', t(tn));
         set(htextslider, 'String', textsliderstr)
         
     end
-
-    function zoom_callback(~,~)
+    function zoomCallback(~,~)
         nscale = get(ax, 'Xlim');
         nscale = nscale(2) - nscale(1);
-        zf = scale/nscale;
-        set(hlinks, 'LineWidth', zf^0.6*linkSize)
-        set(hnodes, 'MarkerSize', zf^0.6 * nodeSize)
-        set(hlinks, {'Xdata'}, num2cell(X(adjacencyList) + dx(:,[1 1]) / zf^0.6, 2), ...
-            {'Ydata'}, num2cell(Y(adjacencyList) + dy(:,[1 1]) / zf^0.6, 2))
+        zf = (scale / nscale) ^ 0.6;
+        set(hlinks, 'LineWidth', zf * linkSize)
+        set(hnodes, 'MarkerSize', zf * nodeSize)
+        set(hlinks, {'Xdata'}, num2cell(X(adjacencyList) + dx(:,[1 1]) / zf, 2), ...
+            {'Ydata'}, num2cell(Y(adjacencyList) + dy(:,[1 1]) / zf, 2))
+        set(hLinkNumbers, {'Position'}, num2cell([xLinkNumber + dx / zf, ...
+            yLinkNumber + dy / zf, zeros(numLinks, 1)], 2))
     end
 
 
@@ -180,8 +191,8 @@ scrsz = get(0,'ScreenSize');
 hfig = figure('Name', 'Network Simulation', ...
     'OuterPosition',[5 5 scrsz(3)*0.7 scrsz(4)*0.95], ...
     'NumberTitle', 'off');
-hpanelmain = uipanel(hfig, 'Position', [0.15 0 0.85 1], 'Background', 'w');
-hpanelside = uipanel(hfig, 'Position', [0 0 0.15 1]);
+hpanelmain = uipanel(hfig, 'Position', [0.2 0 0.8 1], 'Background', 'w');
+hpanelside = uipanel(hfig, 'Position', [0 0 0.2 1]);
 ax = axes('Parent', hpanelmain, 'Position', [0.05 0.05 0.9 0.9]);
 title([networkName, ' Network'], 'FontSize', 22)
 hold on
@@ -192,6 +203,10 @@ laneSpacing = (max(X) - min(X)) / networkScale * 0.05;
 phi = atan2(Y(headNode) - Y(tailNode), X(headNode) - X(tailNode));
 dx = -sin(phi) * laneSpacing;
 dy = cos(phi) * laneSpacing;
+
+% create coordinates for link numbering
+xLinkNumber = mean(X(adjacencyList), 2);
+yLinkNumber = mean(Y(adjacencyList), 2);
 
 
 %% create colourmap for DTA GUI
@@ -256,14 +271,17 @@ end
 hnodes = sort(hnodes);
 set(hnodes, 'Marker', 'o', 'MarkerEdge', 'none', 'HitTest', 'on', 'MarkerFaceColor', [0.2 0.2 0.2])
 
-% htext = text(X,Y, cellstr(num2str((1:numNodes)')), 'Horizontal', 'left');
-% set(htext, 'HitTest', 'off')
+% display link and node numbers (initially hidden)
+hNodeNumbers = text(X,Y, cellstr(num2str((1:numNodes)')), 'horizontal', 'center');
+set(hNodeNumbers, 'PickableParts', 'none', 'Visible', 'off')
+hLinkNumbers = text(xLinkNumber+dx, yLinkNumber+dy, cellstr(num2str((1:numLinks)')), 'horizontal', 'center');
+set(hLinkNumbers, 'PickableParts', 'none', 'Visible', 'off')
 
 % attach callback functions to nodes and link handles
-set(hlinks, 'ButtonDownFcn', @linkSelection_callback)
-set(hnodes, 'ButtonDownFcn', @nodeSelection_callback)
+set(hlinks, 'ButtonDownFcn', @linkSelectionCallback)
+set(hnodes, 'ButtonDownFcn', @nodeSelectionCallback)
 
-set(zoom(hfig), 'ActionPostCallback', @zoom_callback, 'Enable', 'on')
+set(zoom(hfig), 'ActionPostCallback', @zoomCallback, 'Enable', 'on')
 scale = get(ax, 'xlim');
 scale = scale(2) - scale(1);
 
@@ -280,7 +298,7 @@ hslider = uicontrol(hpanelmain, 'Style', 'slider', ...
     'Min', 1, 'Max', nt, ...
     'Value', tval, ...
     'SliderStep', [0.05 0.05], ...
-    'Callback', @slider_callback);
+    'Callback', @sliderCallback);
 
 % make text display above slider
 htextslider = uicontrol(hpanelmain, 'Style', 'text', ...
@@ -295,7 +313,7 @@ hplay = uicontrol(hpanelside, 'Style', 'pushbutton', ...
     'Position', [0.1, 0.85, 0.8, 0.1], ...
     'FontSize', 16, ...
     'String', 'Start', ...
-    'Callback', @play_callback);
+    'Callback', @playCallback);
 
 % make a rewind button
 uicontrol(hpanelside, 'Style', 'pushbutton', ...
@@ -303,15 +321,9 @@ uicontrol(hpanelside, 'Style', 'pushbutton', ...
     'Position', [0.1, 0.8, 0.8, buttonheight], ...
     'FontSize', 12, ...
     'String', '|<<', ...
-    'Callback', @rewind_callback);
+    'Callback', @rewindCallback);
 
-% make a rewind button
-uicontrol(hpanelside, 'Style', 'pushbutton', ...
-    'Units', 'normal', ...
-    'Position', [0.1, 0.6, 0.8, buttonheight], ...
-    'FontSize', 12, ...
-    'String', 'Hide Nodes', ...
-    'Callback', @nodes_callback);
+
 
 % pop-up choice of density, flow
 defpop = 2;
@@ -321,12 +333,36 @@ hpop = uicontrol(hpanelside, 'Style', 'popupmenu', ...
     'FontSize', 14, ...
     'String', popupInfo(defpop,:), ...
     'Value', defpop, ...
-    'Callback', @popup_callback);
+    'Callback', @popupCallback);
 
+% checkbox for displaying nodes
+uicontrol(hpanelside, 'Style', 'checkbox', ...
+    'Units', 'normal', ...
+    'Position', [0.1, 0.6, 0.8, buttonheight], ...
+    'FontSize', 12, ...
+    'String', 'Display nodes', ...
+    'Value', 1, ...
+    'Callback', @displayNodesCallback);
 
-%% update UI initially
-popup_callback(hpop,[])
-zoom_callback([],[])
+% checkbox for node numbers
+uicontrol(hpanelside, 'Style', 'checkbox', ...
+    'Units', 'normal', ...
+    'Position', [0.1, 0.5, 0.8, buttonheight], ...
+    'FontSize', 12, ...
+    'String', 'Node numbers', ...
+    'Callback', @nodeNumbersCallback);
+
+% checkbox for link numbers
+uicontrol(hpanelside, 'Style', 'checkbox', ...
+    'Units', 'normal', ...
+    'Position', [0.1, 0.4, 0.8, buttonheight], ...
+    'FontSize', 12, ...
+    'String', 'Link numbers', ...
+    'Callback', @linkNumbersCallback);
+
+%% initialise UI
+popupCallback(hpop,[])
+zoomCallback([],[])
 axis off equal
 
 out = [];
