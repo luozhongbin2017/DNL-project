@@ -26,6 +26,7 @@ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyLi
         legend('Q_{in}', 'Q_{out}', 'location', 'best')
         
     end
+
     function nodeSelectionCallback(h,~)
         
         activeNode = find(hnodes == h);
@@ -67,6 +68,7 @@ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyLi
         end
         
     end
+
     function sliderCallback(h,~)
         
         set(hplay, 'String', 'Start')
@@ -74,6 +76,7 @@ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyLi
         updateUi(tval)
         
     end
+
     function rewindCallback(~,~)
         
         set(hplay, 'String', 'Start')
@@ -81,6 +84,7 @@ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyLi
         updateUi(tval)
         
     end
+
     function popupCallback(h,~)
         
         ind = get(h, 'Value');
@@ -96,6 +100,7 @@ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyLi
         end
         
     end
+
     function displayNodesCallback(h,~)
         
         if get(h, 'Value') == 0
@@ -105,6 +110,7 @@ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyLi
         end
         
     end
+
     function nodeNumbersCallback(h,~)
         
         if get(h, 'Value') == 1
@@ -114,6 +120,7 @@ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyLi
         end
         
     end
+
     function linkNumbersCallback(h,~)
         
         if get(h, 'Value') == 1
@@ -123,6 +130,7 @@ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyLi
         end
         
     end
+
     function playCallback(h,~)  % *** + GIF generator ***
         
         if strcmp(get(h, 'String'), 'Start')
@@ -155,6 +163,7 @@ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyLi
         end
         
     end
+
     function updateUi(tn)
         
         set(hslider, 'Value', tn)
@@ -168,12 +177,13 @@ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyLi
         set(htextslider, 'String', textsliderstr)
         
     end
+
     function zoomCallback(~,~)
         nscale = get(ax, 'Xlim');
         nscale = nscale(2) - nscale(1);
         zf = (scale / nscale) ^ 0.6;
-        set(hlinks, 'LineWidth', zf * linkSize)
-        set(hnodes, 'MarkerSize', zf * nodeSize)
+        set(hlinks, 'LineWidth', zf * linkWidth)
+        set(hnodes, 'MarkerSize', zf * nodeWidth)
         set(hlinks, {'Xdata'}, num2cell(X(adjacencyList) + dx(:,[1 1]) / zf, 2), ...
             {'Ydata'}, num2cell(Y(adjacencyList) + dy(:,[1 1]) / zf, 2))
         set(hLinkNumbers, {'Position'}, num2cell([xLinkNumber + dx / zf, ...
@@ -181,11 +191,14 @@ function out = networkGUI(networkName,fileName,X,Y,headNode,tailNode,adjacencyLi
     end
 
 
+%% Functions
+
+
 %% Create main GUI figure
 
 networkScale = sqrt(numNodes);
-linkSize = 38 / networkScale;  % link width
-nodeSize = 125 / networkScale;  % node diameter
+linkWidth = 38 / networkScale;  % link width
+nodeWidth = 125 / networkScale;  % node diameter
 
 scrsz = get(0,'ScreenSize');
 hfig = figure('Name', 'Network Simulation', ...
@@ -209,7 +222,8 @@ xLinkNumber = mean(X(adjacencyList), 2);
 yLinkNumber = mean(Y(adjacencyList), 2);
 
 
-%% create colourmap for DTA GUI
+%% load colourmaps for DTA GUI
+% cm = load('colormap_data.mat', 'colorMap1', 'colorMap2');
 % uncongested = [linspace(0.7,0,16)', linspace(1,0.7,16)', linspace(0.8,0,16)'];
 % congested = [linspace(1,0.8,48)', linspace(1,0,48)', linspace(0,0,48)'];
 % cmaprhor  = [uncongested; congested];
@@ -250,7 +264,7 @@ tval = 1;
 % plot links
 hlinks = plot(ax, (X(adjacencyList) + dx(:,[1 1]))', ...
     (Y(adjacencyList) + dy(:,[1 1]))');
-set(hlinks, 'LineWidth', linkSize)
+set(hlinks, 'LineWidth', linkWidth)
 
 % plot nodes
 hnodes = NaN(numNodes,1);
@@ -274,8 +288,8 @@ set(hnodes, 'Marker', 'o', 'MarkerEdge', 'none', 'HitTest', 'on', 'MarkerFaceCol
 % display link and node numbers (initially hidden)
 hNodeNumbers = text(X,Y, cellstr(num2str((1:numNodes)')), 'horizontal', 'center');
 set(hNodeNumbers, 'PickableParts', 'none', 'Visible', 'off')
-hLinkNumbers = text(xLinkNumber+dx, yLinkNumber+dy, cellstr(num2str((1:numLinks)')), 'horizontal', 'center');
-set(hLinkNumbers, 'PickableParts', 'none', 'Visible', 'off')
+hLinkNumbers = text(xLinkNumber+dx, yLinkNumber+dy, cellstr(num2str((1:numLinks)')));
+set(hLinkNumbers, 'PickableParts', 'none', 'Visible', 'off', 'Horizontal', 'center', 'Color', 'blue')
 
 % attach callback functions to nodes and link handles
 set(hlinks, 'ButtonDownFcn', @linkSelectionCallback)
